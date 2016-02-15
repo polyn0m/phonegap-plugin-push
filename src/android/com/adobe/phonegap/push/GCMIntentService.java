@@ -353,7 +353,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
     private void setNotificationCount(Bundle extras, NotificationCompat.Builder mBuilder) {
         String msgcnt = extras.getString(COUNT);
-        
+
         if (msgcnt == null) {
             msgcnt = extras.getString(BADGE);
         }
@@ -393,11 +393,16 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
             Integer sizeList = messageList.size();
             if (sizeList > 1) {
                 String sizeListMessage = sizeList.toString();
-                String stacking = sizeList + " more";
+                String stacking = "";
+
                 if (extras.getString(SUMMARY_TEXT) != null) {
                     stacking = extras.getString(SUMMARY_TEXT);
                     stacking = stacking.replace("%n%", sizeListMessage);
                 }
+                else {
+                    extras.putString(COUNT, sizeListMessage);
+                }   
+                             
                 NotificationCompat.InboxStyle notificationInbox = new NotificationCompat.InboxStyle()
                         .setBigContentTitle(extras.getString(TITLE))
                         .setSummaryText(stacking);
