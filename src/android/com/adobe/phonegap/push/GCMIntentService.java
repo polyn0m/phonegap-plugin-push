@@ -352,7 +352,8 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
     }
 
     private void setNotificationCount(Bundle extras, NotificationCompat.Builder mBuilder) {
-        String msgcnt = extras.getString(MSGCNT);
+        String msgcnt = extras.getString(COUNT);
+        
         if (msgcnt == null) {
             msgcnt = extras.getString(BADGE);
         }
