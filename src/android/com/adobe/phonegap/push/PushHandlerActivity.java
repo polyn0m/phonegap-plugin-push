@@ -20,7 +20,7 @@ public class PushHandlerActivity extends Activity implements PushConstants {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         GCMIntentService gcm = new GCMIntentService();
-        gcm.setNotification(getIntent().getIntExtra(NOT_ID, 0), "");
+        gcm.setNotification(getIntent().getStringExtra(NOT_ID), "");
         super.onCreate(savedInstanceState);
         Log.v(LOG_TAG, "onCreate");
 

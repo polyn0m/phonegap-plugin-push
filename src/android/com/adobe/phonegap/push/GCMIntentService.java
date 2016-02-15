@@ -33,23 +33,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.zip.CRC32;
 
 @SuppressLint("NewApi")
 public class GCMIntentService extends GcmListenerService implements PushConstants {
 
     private static final String LOG_TAG = "PushPlugin_GCMIntentService";
-    private static HashMap<Integer, ArrayList<String>> messageMap = new HashMap<Integer, ArrayList<String>>();
+    private static HashMap<String, ArrayList<String>> messageMap = new HashMap<String, ArrayList<String>>();
 
-    public void setNotification(int notId, String message){
+    public void setNotification(String notId, String message) {
         ArrayList<String> messageList = messageMap.get(notId);
-        if(messageList == null) {
+        if (messageList == null) {
             messageList = new ArrayList<String>();
             messageMap.put(notId, messageList);
         }
 
-        if(message.isEmpty()){
+        if  (message.isEmpty()) {
             messageList.clear();
-        }else{
+        } else {
             messageList.add(message);
         }
     }
@@ -192,19 +193,14 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
     }
 
     private void showNotificationIfPossible (Context context, Bundle extras) {
-
-        // Send a notification if there is a message or title, otherwise just send data
+        // Send a notification if there is a message, otherwise just send data
         String message = extras.getString(MESSAGE);
-        String title = extras.getString(TITLE);
         String contentAvailable = extras.getString(CONTENT_AVAILABLE);
 
         Log.d(LOG_TAG, "message =[" + message + "]");
-        Log.d(LOG_TAG, "title =[" + title + "]");
         Log.d(LOG_TAG, "contentAvailable =[" + contentAvailable + "]");
 
-        if ((message != null && message.length() != 0) ||
-                (title != null && title.length() != 0)) {
-
+        if (message != null && message.length() != 0) {
             Log.d(LOG_TAG, "create notification");
 
             createNotification(context, extras);
@@ -222,7 +218,23 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         String packageName = context.getPackageName();
         Resources resources = context.getResources();
 
-        int notId = parseInt(NOT_ID, extras);
+        String title = extras.getString(TITLE);
+        if (title != null) {
+            int titleResId = context.getResources().getIdentifier("app_name", "string", context.getPackageName());
+
+            title = context.getResources().getString(titleResId);
+        }
+
+        String notId = extras.getString(NOT_ID);
+        if (notId == null) {
+            notId = "";
+        }
+
+        CRC32 crc32 = new CRC32();
+        crc32.update(notId.getBytes());
+
+        int notIdNumber = (int) crc32.getValue();
+
         Intent notificationIntent = new Intent(this, PushHandlerActivity.class);
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         notificationIntent.putExtra(PUSH_BUNDLE, extras);
@@ -234,8 +246,8 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setWhen(System.currentTimeMillis())
-                        .setContentTitle(extras.getString(TITLE))
-                        .setTicker(extras.getString(TITLE))
+                        .setContentTitle(title)
+                        .setTicker(title)
                         .setContentIntent(contentIntent)
                         .setAutoCancel(true);
 
@@ -244,6 +256,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         String localIconColor = prefs.getString(ICON_COLOR, null);
         boolean soundOption = prefs.getBoolean(SOUND, true);
         boolean vibrateOption = prefs.getBoolean(VIBRATE, true);
+
         Log.d(LOG_TAG, "stored icon=" + localIcon);
         Log.d(LOG_TAG, "stored iconColor=" + localIconColor);
         Log.d(LOG_TAG, "stored sound=" + soundOption);
@@ -324,7 +337,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
          */
         createActions(extras, mBuilder, resources, packageName);
 
-        mNotificationManager.notify(appName, notId, mBuilder.build());
+        mNotificationManager.notify(appName, notIdNumber, mBuilder.build());
     }
 
     private void createActions(Bundle extras, NotificationCompat.Builder mBuilder, Resources resources, String packageName) {
@@ -380,7 +393,16 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         }
     }
 
-    private void setNotificationMessage(int notId, Bundle extras, NotificationCompat.Builder mBuilder) {
+    private void setNotificationMessage(String notId, Bundle extras, NotificationCompat.Builder mBuilder) {
+        Context context = getApplicationContext();
+
+        String title = extras.getString(TITLE);
+        if (title != null) {
+            int titleResId = context.getResources().getIdentifier("app_name", "string", context.getPackageName());
+
+            title = context.getResources().getString(titleResId);
+        }
+
         String message = extras.getString(MESSAGE);
 
         String style = extras.getString(STYLE, STYLE_TEXT);
@@ -404,7 +426,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
                 }   
                              
                 NotificationCompat.InboxStyle notificationInbox = new NotificationCompat.InboxStyle()
-                        .setBigContentTitle(extras.getString(TITLE))
+                        .setBigContentTitle(title)
                         .setSummaryText(stacking);
 
                 for (int i = messageList.size() - 1; i >= 0; i--) {
@@ -416,7 +438,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
                 NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
                 if (message != null) {
                     bigText.bigText(message);
-                    bigText.setBigContentTitle(extras.getString(TITLE));
+                    bigText.setBigContentTitle(title);
                     mBuilder.setStyle(bigText);
                 }
             }
@@ -425,10 +447,10 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
             NotificationCompat.BigPictureStyle bigPicture = new NotificationCompat.BigPictureStyle();
             bigPicture.bigPicture(getBitmapFromURL(extras.getString(PICTURE)));
-            bigPicture.setBigContentTitle(extras.getString(TITLE));
+            bigPicture.setBigContentTitle(title);
             bigPicture.setSummaryText(extras.getString(SUMMARY_TEXT));
 
-            mBuilder.setContentTitle(extras.getString(TITLE));
+            mBuilder.setContentTitle(title);
             mBuilder.setContentText(message);
 
             mBuilder.setStyle(bigPicture);
@@ -441,7 +463,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
                 mBuilder.setContentText(Html.fromHtml(message));
 
                 bigText.bigText(message);
-                bigText.setBigContentTitle(extras.getString(TITLE));
+                bigText.setBigContentTitle(title);
 
                 String summaryText = extras.getString(SUMMARY_TEXT);
                 if (summaryText != null) {
