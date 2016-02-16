@@ -22,6 +22,7 @@ public class PushHandlerActivity extends Activity implements PushConstants {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         gcm = new GCMIntentService();
+        gcm.clearMessages();
 
         super.onCreate(savedInstanceState);
         Log.v(LOG_TAG, "onCreate");
@@ -67,10 +68,6 @@ public class PushHandlerActivity extends Activity implements PushConstants {
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (gcm != null) {
-            gcm.clearMessages();
-        }
 
         final NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
