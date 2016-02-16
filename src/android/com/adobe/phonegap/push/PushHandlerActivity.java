@@ -11,6 +11,8 @@ import android.util.Log;
 public class PushHandlerActivity extends Activity implements PushConstants {
     private static String LOG_TAG = "PushPlugin_PushHandlerActivity";
 
+    private GCMIntentService gcm = null;
+
     /*
      * this activity will be started if the user touches a notification that we own.
      * We send it's data off to the push plugin for processing.
@@ -19,8 +21,8 @@ public class PushHandlerActivity extends Activity implements PushConstants {
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        GCMIntentService gcm = new GCMIntentService();
-        gcm.setNotification(getIntent().getStringExtra(NOT_ID), "");
+        gcm = new GCMIntentService();
+
         super.onCreate(savedInstanceState);
         Log.v(LOG_TAG, "onCreate");
 
@@ -58,12 +60,18 @@ public class PushHandlerActivity extends Activity implements PushConstants {
     private void forceMainActivityReload() {
         PackageManager pm = getPackageManager();
         Intent launchIntent = pm.getLaunchIntentForPackage(getApplicationContext().getPackageName());
+
         startActivity(launchIntent);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (gcm != null) {
+            gcm.clearMessages();
+        }
+
         final NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
     }

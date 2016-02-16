@@ -43,6 +43,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
     public void setNotification(String notId, String message) {
         ArrayList<String> messageList = messageMap.get(notId);
+
         if (messageList == null) {
             messageList = new ArrayList<String>();
             messageMap.put(notId, messageList);
@@ -53,6 +54,10 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         } else {
             messageList.add(message);
         }
+    }
+
+    public void clearMessages() {
+        messageMap.clear();
     }
 
     @Override
@@ -214,12 +219,13 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
     public void createNotification(Context context, Bundle extras) {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        
         String appName = getAppName(this);
         String packageName = context.getPackageName();
         Resources resources = context.getResources();
 
         String title = extras.getString(TITLE);
-        if (title != null) {
+        if (title == null) {
             int titleResId = context.getResources().getIdentifier("app_name", "string", context.getPackageName());
 
             title = context.getResources().getString(titleResId);
@@ -397,7 +403,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         Context context = getApplicationContext();
 
         String title = extras.getString(TITLE);
-        if (title != null) {
+        if (title == null) {
             int titleResId = context.getResources().getIdentifier("app_name", "string", context.getPackageName());
 
             title = context.getResources().getString(titleResId);
@@ -454,6 +460,43 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
             mBuilder.setContentText(message);
 
             mBuilder.setStyle(bigPicture);
+        } else if (STYLE_BUHPHONE.equals(style)) {
+            String chatId = extras.getString(CHAT_ID);
+            String chatName = extras.getString(CHAT_NAME);
+
+            setNotification(chatId, "");
+
+            NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+
+            int p2pMsgId = context.getResources().getIdentifier("new_message_by", "string", context.getPackageName());
+            int serviceMsgId = context.getResources().getIdentifier("new_message_at", "string", context.getPackageName());
+            int chatsMsgId = context.getResources().getIdentifier("new_messages", "string", context.getPackageName());
+
+            if (messageMap.size() == 1) {
+                if (chatId.length() > 36) {
+                    message = context.getResources().getString(serviceMsgId);
+                }
+                else {
+                    message = context.getResources().getString(p2pMsgId);
+                }
+
+                message += " " + chatName;
+            }
+            else if (messageMap.size() > 1) {
+                message = context.getResources().getString(chatsMsgId);
+
+                Integer chatSize = messageMap.size();
+                message = message.replace("{{chats}}", chatSize.toString());
+            }
+
+            if (message != null) {
+                mBuilder.setContentText(Html.fromHtml(message));
+
+                bigText.bigText(message);
+                bigText.setBigContentTitle(title);
+
+                mBuilder.setStyle(bigText);
+            }
         } else {
             setNotification(notId, "");
 
@@ -472,11 +515,6 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
                 mBuilder.setStyle(bigText);
             }
-            /*
-            else {
-                mBuilder.setContentText("<missing message content>");
-            }
-            */
         }
     }
 
