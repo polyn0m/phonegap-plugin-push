@@ -21,19 +21,33 @@ public class PushHandlerActivity extends Activity implements PushConstants {
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         gcm = new GCMIntentService();
         gcm.clearMessages();
 
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
+
         super.onCreate(savedInstanceState);
         Log.v(LOG_TAG, "onCreate");
+        String callback = getIntent().getExtras().getString("callback");
+        Log.d(LOG_TAG, "callback = " + callback);
+        boolean foreground = getIntent().getExtras().getBoolean("foreground", true);
+
+        Log.d(LOG_TAG, "bringToForeground = " + foreground);
 
         boolean isPushPluginActive = PushPlugin.isActive();
         processPushBundle(isPushPluginActive);
 
         finish();
 
-        if (!isPushPluginActive) {
+        Log.d(LOG_TAG, "isPushPluginActive = " + isPushPluginActive);
+
+        if (!isPushPluginActive && foreground) {
+            Log.d(LOG_TAG, "forceMainActivityReload");
             forceMainActivityReload();
+        } else {
+            Log.d(LOG_TAG, "don't want main activity");
         }
     }
 
