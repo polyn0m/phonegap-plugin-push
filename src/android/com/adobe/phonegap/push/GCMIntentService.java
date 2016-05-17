@@ -221,7 +221,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
     public void createNotification(Context context, Bundle extras) {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        
+
         String appName = getAppName(this);
         String packageName = context.getPackageName();
         Resources resources = context.getResources();
@@ -348,7 +348,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         mNotificationManager.notify(appName, notIdNumber, mBuilder.build());
     }
 
-    private void createActions(Bundle extras, NotificationCompat.Builder mBuilder, Resources resources, String packageName, int notId) {
+    private void createActions(Bundle extras, NotificationCompat.Builder mBuilder, Resources resources, String packageName, String notId) {
         Log.d(LOG_TAG, "create actions");
         String actions = extras.getString(ACTIONS);
         if (actions != null) {
@@ -454,8 +454,8 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
                 }
                 else {
                     extras.putString(COUNT, sizeListMessage);
-                }   
-                             
+                }
+
                 NotificationCompat.InboxStyle notificationInbox = new NotificationCompat.InboxStyle()
                         .setBigContentTitle(title)
                         .setSummaryText(stacking);
