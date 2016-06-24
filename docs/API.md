@@ -11,6 +11,7 @@
 - [push.setApplicationIconBadgeNumber()](#pushsetapplicationiconbadgenumbersuccesshandler-errorhandler-count---ios-only)
 - [push.getApplicationIconBadgeNumber()](#pushgetapplicationiconbadgenumbersuccesshandler-errorhandler---ios-only)
 - [push.finish()](#pushfinishsuccesshandler-errorhandler-id---ios-only)
+- [push.clearAllNotifications()](#pushclearallnotificationssuccesshandler-errorhandler---ios-android-only)
 
 ## PushNotification.init(options)
 
@@ -157,6 +158,12 @@ push.on('registration', function(data) {
 });
 ```
 
+For APNS users: the `registrationId` you will get will be a production or sandbox id according to how the app was built. ([Source](https://developer.apple.com/library/ios/technotes/tn2265/_index.html))
+
+> Note: There is a separate persistent connection to the push service for each environment. The operating system establishes a persistent connection to the sandbox environment for development builds; ad hoc and distribution builds connect to the production environment.
+
+
+
 ### Common Problems
 
 #### Got JSON Exception TIMEOUT
@@ -179,7 +186,7 @@ Parameter | Type | Description
 --------- | ---- | -----------
 `data.message` | `string` | The text of the push message sent from the 3rd party service.
 `data.title` | `string` | The optional title of the push message sent from the 3rd party service.
-`data.count` | `string` | The number of messages to be displayed in the badge iOS or message count in the notification shade in Android. For windows, it represents the value in the badge notification which could be a number or a status glyph.
+`data.count` | `string` | The number of messages to be displayed in the badge in iOS/Android or message count in the notification shade in Android. For windows, it represents the value in the badge notification which could be a number or a status glyph.
 `data.sound` | `string` | The name of the sound file to be played upon receipt of the notification.
 `data.image` | `string` | The path of the image file to be displayed in the notification.
 `data.launchArgs` | `string` | The args to be passed to the application on launch from push notification. This works when notification is received in background. (Windows Only)
@@ -266,7 +273,7 @@ push.unregister(function() {
 });
 ```
 
-## push.setApplicationIconBadgeNumber(successHandler, errorHandler, count) - iOS only
+## push.setApplicationIconBadgeNumber(successHandler, errorHandler, count) - iOS & Android only
 
 Set the badge count visible when the app is not running
 
@@ -337,4 +344,25 @@ push.finish(function() {
 }, function() {
 	console.log('error');
 }, 'push-1');
+```
+
+## push.clearAllNotifications(successHandler, errorHandler) - iOS, Android only
+
+Tells the OS to clear all notifications from the Notification Center
+
+### Parameters
+
+Parameter | Type | Default | Description
+--------- | ---- | ------- | -----------
+`successHandler` | `Function` | | Is called when the api successfully clears the notifications.
+`errorHandler` | `Function` | | Is called when the api encounters an error when attempting to clears the notifications.
+
+### Example
+
+```javascript
+push.clearAllNotifications(function() {
+	console.log('success');
+}, function() {
+	console.log('error');
+});
 ```

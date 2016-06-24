@@ -54,7 +54,10 @@ public interface PushConstants {
     public static final String GCM = "GCM";
     public static final String CONTENT_AVAILABLE = "content-available";
     public static final String TOPICS = "topics";
-
+	public static final String SET_APPLICATION_ICON_BADGE_NUMBER = "setApplicationIconBadgeNumber";
+    public static final String CLEAR_ALL_NOTIFICATIONS = "clearAllNotifications";
+    public static final String VISIBILITY = "visibility";
+    
     public static final String STYLE_BUHPHONE = "buhphone";
     public static final String CHAT_ID = "chat_id";
     public static final String CHAT_NAME = "chat_name";
